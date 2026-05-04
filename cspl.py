@@ -87,7 +87,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     admin_text = " 👑 ADMIN" if is_admin_user else ""
     
     await update.message.reply_text(
-        f"🏆 **CSPL - CRICKET SPORTS PREMIER LEAGUE** 🏆\n\n"
+        f"🏆 **CSPL - CRICKET SAGA  PREMIER LEAGUE** 🏆\n\n"
         f"🌿 Welcome {name}{admin_text}! 🌿\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━━\n"
         f"📌 **Commands:**\n"
