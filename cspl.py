@@ -35,6 +35,9 @@ def init_db():
                  (user_id INTEGER, achievement TEXT, date TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS hof 
                  (user_id INTEGER, name TEXT, points INTEGER, date TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS hof 
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)''')
+
     conn.commit()
     conn.close()
 
@@ -128,28 +131,6 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\nTotal: {len(ach)} achievements"
     await update.message.reply_text(msg)
 
-# ============ HALL OF FAME ============
-async def hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT name, points, date FROM hof ORDER BY points DESC LIMIT 10")
-    leaders = c.fetchall()
-    conn.close()
-    
-    if not leaders:
-        await update.message.reply_text(
-            f"🏆 HALL OF FAME 🏆\n\n"
-            f"No entries yet!\n"
-            f"Legends will be added here."
-        )
-        return
-    
-    msg = f"🏆 HALL OF FAME 🏆\n\n"
-    for i, (name, points, date) in enumerate(leaders, 1):
-        medal = "👑" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
-        msg += f"{medal} {name} - {points} pts\n"
-    msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\n🏆 CSPL Legends"
-    await update.message.reply_text(msg)
 
 # ============ ADMIN COMMANDS ============
 async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -222,65 +203,88 @@ async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     await update.message.reply_text(f"✅ Achievement removed from {target.first_name}!\n\nRemoved: {removed[1]}")
 
+# ============ HALL OF FAME (SEASON WINNER) ==========
+
 async def add_hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         await update.message.reply_text("❌ Admin only command!")
         return
     
-    if not update.message.reply_to_message:
-        await update.message.reply_text("❌ Reply to user with /add_hof <points>")
-        return
-    
     args = context.args
     if len(args) < 1:
-        await update.message.reply_text("❌ Usage: /add_hof <points> (reply to user)")
+        await update.message.reply_text("❌ Usage: /add_hof <season_winner>\nExample: /add_hof CSPL SEASON 1 WINNER - AUSTRALIA")
         return
     
-    try:
-        points = int(args[0])
-    except:
-        await update.message.reply_text("❌ Invalid points")
-        return
-    
-    target = update.message.reply_to_message.from_user
-    name = target.first_name
-    now = datetime.now().strftime("%Y-%m-%d")
+    season_winner = ' '.join(args)
     
     conn = get_db()
     c = conn.cursor()
-    c.execute("INSERT INTO hof (user_id, name, points, date) VALUES (?, ?, ?, ?)", (target.id, name, points, now))
+    c.execute("INSERT INTO hof (name) VALUES (?)", (season_winner,))
     conn.commit()
+    hof_id = c.lastrowid
     conn.close()
     
-    await update.message.reply_text(f"✅ {name} added to Hall of Fame!\n\n🏆 {points} points")
+    await update.message.reply_text(
+        f"✅ Added to Hall of Fame!\n\n"
+        f"🏆 {season_winner}"
+    )
 
-# ============ RM_HOF ============
 async def rm_hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         await update.message.reply_text("❌ Admin only command!")
         return
     
-    if not update.message.reply_to_message:
-        await update.message.reply_text("❌ Reply to user with /rm_hof")
+    args = context.args
+    if len(args) < 1:
+        await update.message.reply_text("❌ Usage: /rm_hof <number>\nUse /hof to see numbers")
         return
     
-    target = update.message.reply_to_message.from_user
+    try:
+        num = int(args[0])
+    except:
+        await update.message.reply_text("❌ Invalid number")
+        return
     
     conn = get_db()
     c = conn.cursor()
-    c.execute("SELECT name, points FROM hof WHERE user_id=?", (target.id,))
-    entry = c.fetchone()
+    c.execute("SELECT rowid, name FROM hof")
+    hof_list = c.fetchall()
     
-    if not entry:
-        await update.message.reply_text(f"❌ {target.first_name} not found in Hall of Fame!")
+    if num < 1 or num > len(hof_list):
+        await update.message.reply_text(f"❌ Choose 1-{len(hof_list)}")
         conn.close()
         return
     
-    c.execute("DELETE FROM hof WHERE user_id=?", (target.id,))
+    removed = hof_list[num-1]
+    c.execute("DELETE FROM hof WHERE rowid=?", (removed[0],))
     conn.commit()
     conn.close()
     
-    await update.message.reply_text(f"✅ {target.first_name} removed from Hall of Fame!\n\n🏆 {entry[0]} - {entry[1]} pts removed")
+    await update.message.reply_text(
+        f"✅ Removed from Hall of Fame!\n\n"
+        f"Removed: {removed[1]}"
+    )
+
+async def hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT rowid, name FROM hof ORDER BY rowid ASC")
+    hof_list = c.fetchall()
+    conn.close()
+    
+    if not hof_list:
+        await update.message.reply_text(
+            f"🏆 HALL OF FAME 🏆\n\n"
+            f"No entries yet!\n"
+            f"Use /add_hof to add season winners."
+        )
+        return
+    
+    msg = f"🏆 HALL OF FAME 🏆\n\n"
+    for i, (rowid, name) in enumerate(hof_list, 1):
+        msg += f"{i}. {name}\n"
+    msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\n🏆 CSPL Legends"
+    await update.message.reply_text(msg)
 
 OWNER_ID = 7687078555  # Tera ID
 
