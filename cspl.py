@@ -282,10 +282,11 @@ async def rm_hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(f"✅ {target.first_name} removed from Hall of Fame!\n\n🏆 {entry[0]} - {entry[1]} pts removed")
 
-# ============ PROMOTEADMIN ============
+OWNER_ID = 7687078555  # Tera ID
+
 async def promoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("❌ Admin only command!")
+    if update.effective_user.id != OWNER_ID:
+        await update.message.reply_text("❌ Only bot owner can promote admins!")
         return
     
     if not update.message.reply_to_message:
@@ -300,17 +301,15 @@ async def promoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     ADMIN_IDS.append(target.id)
     
-    # Update the list (save to file or keep in memory)
     with open("admin_ids.txt", "w") as f:
         for uid in ADMIN_IDS:
             f.write(f"{uid}\n")
     
-    await update.message.reply_text(f"✅ {target.first_name} is now an admin!\n\n👑 Added to ADMIN_IDS")
+    await update.message.reply_text(f"✅ {target.first_name} is now an admin!")
 
-# ============ DEMOTEADMIN ============
 async def demoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("❌ Admin only command!")
+    if update.effective_user.id != OWNER_ID:
+        await update.message.reply_text("❌ Only bot owner can demote admins!")
         return
     
     if not update.message.reply_to_message:
@@ -319,8 +318,8 @@ async def demoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     target = update.message.reply_to_message.from_user
     
-    if target.id == update.effective_user.id:
-        await update.message.reply_text("❌ You cannot demote yourself!")
+    if target.id == OWNER_ID:
+        await update.message.reply_text("❌ Cannot demote the bot owner!")
         return
     
     if target.id not in ADMIN_IDS:
@@ -329,12 +328,11 @@ async def demoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     ADMIN_IDS.remove(target.id)
     
-    # Update the list (save to file or keep in memory)
     with open("admin_ids.txt", "w") as f:
         for uid in ADMIN_IDS:
             f.write(f"{uid}\n")
     
-    await update.message.reply_text(f"✅ {target.first_name} is no longer an admin!\n\n👑 Removed from ADMIN_IDS")
+    await update.message.reply_text(f"✅ {target.first_name} is no longer an admin!")
 
 
 
