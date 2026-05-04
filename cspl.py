@@ -116,15 +116,15 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not ach:
         await update.message.reply_text(
-            f"🏆 MY ACHIEVEMENTS 🏆\n\n"
+            f"CSPL ACHIEVEMENTS:\n\n"
             f"No achievements yet!\n"
             f"Participate in CSPL events to earn badges."
         )
         return
     
-    msg = f"🏆 MY ACHIEVEMENTS 🏆\n\n"
+    msg = f"CSPL ACHIEVEMENTS:\n\n"
     for i, a in enumerate(ach, 1):
-        msg += f"{i}. {a[0]} 🏆\n"
+        msg += f"{i}. {a[0]}\n"
     msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\nTotal: {len(ach)} achievements"
     await update.message.reply_text(msg)
 
@@ -176,7 +176,12 @@ async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.commit()
     conn.close()
     
-    await update.message.reply_text(f"✅ Achievement given to {target.first_name}!\n\n🏆 {achievement}")
+    await update.message.reply_text(
+        f"CSPL ACHIEVEMENTS:\n"
+        f"✅ Achievement given to {target.first_name}!\n\n"
+        f"{achievement}"
+    )
+
 
 async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
@@ -249,6 +254,91 @@ async def add_hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(f"✅ {name} added to Hall of Fame!\n\n🏆 {points} points")
 
+# ============ RM_HOF ============
+async def rm_hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in ADMIN_IDS:
+        await update.message.reply_text("❌ Admin only command!")
+        return
+    
+    if not update.message.reply_to_message:
+        await update.message.reply_text("❌ Reply to user with /rm_hof")
+        return
+    
+    target = update.message.reply_to_message.from_user
+    
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT name, points FROM hof WHERE user_id=?", (target.id,))
+    entry = c.fetchone()
+    
+    if not entry:
+        await update.message.reply_text(f"❌ {target.first_name} not found in Hall of Fame!")
+        conn.close()
+        return
+    
+    c.execute("DELETE FROM hof WHERE user_id=?", (target.id,))
+    conn.commit()
+    conn.close()
+    
+    await update.message.reply_text(f"✅ {target.first_name} removed from Hall of Fame!\n\n🏆 {entry[0]} - {entry[1]} pts removed")
+
+# ============ PROMOTEADMIN ============
+async def promoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in ADMIN_IDS:
+        await update.message.reply_text("❌ Admin only command!")
+        return
+    
+    if not update.message.reply_to_message:
+        await update.message.reply_text("❌ Reply to user with /promoteadmin")
+        return
+    
+    target = update.message.reply_to_message.from_user
+    
+    if target.id in ADMIN_IDS:
+        await update.message.reply_text(f"❌ {target.first_name} is already an admin!")
+        return
+    
+    ADMIN_IDS.append(target.id)
+    
+    # Update the list (save to file or keep in memory)
+    with open("admin_ids.txt", "w") as f:
+        for uid in ADMIN_IDS:
+            f.write(f"{uid}\n")
+    
+    await update.message.reply_text(f"✅ {target.first_name} is now an admin!\n\n👑 Added to ADMIN_IDS")
+
+# ============ DEMOTEADMIN ============
+async def demoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in ADMIN_IDS:
+        await update.message.reply_text("❌ Admin only command!")
+        return
+    
+    if not update.message.reply_to_message:
+        await update.message.reply_text("❌ Reply to user with /demoteadmin")
+        return
+    
+    target = update.message.reply_to_message.from_user
+    
+    if target.id == update.effective_user.id:
+        await update.message.reply_text("❌ You cannot demote yourself!")
+        return
+    
+    if target.id not in ADMIN_IDS:
+        await update.message.reply_text(f"❌ {target.first_name} is not an admin!")
+        return
+    
+    ADMIN_IDS.remove(target.id)
+    
+    # Update the list (save to file or keep in memory)
+    with open("admin_ids.txt", "w") as f:
+        for uid in ADMIN_IDS:
+            f.write(f"{uid}\n")
+    
+    await update.message.reply_text(f"✅ {target.first_name} is no longer an admin!\n\n👑 Removed from ADMIN_IDS")
+
+
+
+
 # ============ MAIN ==========
 def main():
     threading.Thread(target=run_flask, daemon=True).start()
@@ -262,6 +352,9 @@ def main():
     app.add_handler(CommandHandler("add_achievement", add_achievement))
     app.add_handler(CommandHandler("remove_achievement", remove_achievement))
     app.add_handler(CommandHandler("add_hof", add_hof))
+    app.add_handler(CommandHandler("rm_hof", rm_hof))
+    app.add_handler(CommandHandler("promoteadmin", promoteadmin))
+    app.add_handler(CommandHandler("demoteadmin", demoteadmin))
     
     print("🤖 CSPL Bot is running...")
     app.run_polling()
