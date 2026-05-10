@@ -158,7 +158,7 @@ async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
     
     await update.message.reply_text(
-        f"CSPL ACHIEVEMENTS:\n"
+        f"CFL ACHIEVEMENTS:\n"
         f"✅ Achievement given to {target.first_name}!\n\n"
         f"{achievement}"
     )
