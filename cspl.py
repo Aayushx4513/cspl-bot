@@ -6,8 +6,8 @@ import os
 import threading
 from flask import Flask
 
-TOKEN = "8755413906:AAFsgBjGnktsMBoTVFttTidtnuefaiQ-oN8"
-ADMIN_IDS = [7687078555, 6620360093]
+TOKEN = "8264711416:AAE_uuhdNTnFWzzPTEugPNQuLxbFCBNxxeg"
+ADMIN_IDS = [7687078555, 6966073511]
 
 flask_app = Flask(__name__)
 
@@ -81,21 +81,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_admin = "👑 ADMIN" if user_id in ADMIN_IDS else ""
     
     await update.message.reply_text(
-        f"🏆 CSPL - CRICKET SAGA PREMIER LEAGUE 🏆\n\n"
+        f"🏆 CFL - CRICKET FANTASY LEAGUE 🏆\n\n"
         f"🌿 Welcome {name} {is_admin}! 🌿\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━━\n"
         f"📌 Commands:\n"
         f"   /achievements - Your badges\n"
         f"   /hof - Hall of Fame\n"
         f"   /help - All commands\n\n"
-        f"🌿 Made with passion for CSPL 🌿"
+        f"🌿 Made with passion for CFL 🌿"
     )
     conn.close()
 
 # ============ HELP ============
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        f"🏆 CSPL COMMANDS 🏆\n\n"
+        f"🏆 CFL COMMANDS 🏆\n\n"
         f"📌 User Commands:\n"
         f"   /start - Start the bot\n"
         f"   /achievements - View your badges\n"
@@ -105,7 +105,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"   /add_achievement @user <name> - Give achievement\n"
         f"   /remove_achievement @user <id> - Remove achievement\n"
         f"   /add_hof @user <points> - Add to Hall of Fame\n\n"
-        f"🌿 Made with passion for CSPL 🌿"
+        f"🌿 Made with passion for CFL 🌿"
     )
 
 # ============ ACHIEVEMENTS ============
@@ -121,7 +121,7 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"CSPL ACHIEVEMENTS:\n\n"
             f"No achievements yet!\n"
-            f"Participate in CSPL events to earn badges."
+            f"Participate in CFL events to earn badges."
         )
         return
     
@@ -283,10 +283,10 @@ async def hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = f"🏆 HALL OF FAME 🏆\n\n"
     for i, (rowid, name) in enumerate(hof_list, 1):
         msg += f"{i}. {name}\n"
-    msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\n🏆 CSPL Legends"
+    msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\n🏆 CFL Legends"
     await update.message.reply_text(msg)
 
-OWNER_ID = 7687078555  # Tera ID
+OWNER_ID = [7687078555, 6966073511]  # Tera ID
 
 async def promoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
