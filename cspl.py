@@ -119,7 +119,7 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not ach:
         await update.message.reply_text(
-            f"CSPL ACHIEVEMENTS:\n\n"
+            f"CFL ACHIEVEMENTS:\n\n"
             f"No achievements yet!\n"
             f"Participate in CFL events to earn badges."
         )
