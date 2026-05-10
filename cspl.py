@@ -125,7 +125,7 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     
-    msg = f"CSPL ACHIEVEMENTS:\n\n"
+    msg = f"CFL ACHIEVEMENTS:\n\n"
     for i, a in enumerate(ach, 1):
         msg += f"{i}. {a[0]}\n"
     msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\nTotal: {len(ach)} achievements"
