@@ -139,12 +139,13 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # ============ ACHIEVEMENTS ============
+# ============ ACHIEVEMENTS ============
 async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
     db = await get_db()
     ach = await db.fetch(
-        "SELECT achievement FROM achievements WHERE user_id = $1 ORDER BY id DESC",
+        "SELECT achievement FROM achievements WHERE user_id = $1 ORDER BY rowid DESC",
         user_id
     )
     await db.close()
@@ -163,6 +164,7 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg += f"\n━━━━━━━━━━━━━━━━━━━━━━\nTotal: {len(ach)} achievements"
     await update.message.reply_text(msg)
 
+
 # ============ ADD ACHIEVEMENT ============
 async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
@@ -180,12 +182,11 @@ async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     achievement = ' '.join(args)
     target = update.message.reply_to_message.from_user
-    now = datetime.now().strftime("%Y-%m-%d")
     
     db = await get_db()
     await db.execute(
-        "INSERT INTO achievements (user_id, achievement, date) VALUES ($1, $2, $3)",
-        target.id, achievement, now
+        "INSERT INTO achievements (user_id, achievement) VALUES ($1, $2)",
+        target.id, achievement
     )
     await db.close()
     
@@ -194,6 +195,7 @@ async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"✅ Achievement given to {target.first_name}!\n\n"
         f"{achievement}"
     )
+
 
 # ============ REMOVE ACHIEVEMENT ============
 async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -220,7 +222,7 @@ async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     db = await get_db()
     ach = await db.fetch(
-        "SELECT id, achievement FROM achievements WHERE user_id = $1 ORDER BY id",
+        "SELECT rowid, achievement FROM achievements WHERE user_id = $1 ORDER BY rowid",
         target.id
     )
     
@@ -230,10 +232,14 @@ async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
     
     removed = ach[num-1]
-    await db.execute("DELETE FROM achievements WHERE id = $1", removed['id'])
+    await db.execute("DELETE FROM achievements WHERE rowid = $1", removed['rowid'])
     await db.close()
     
-    await update.message.reply_text(f"✅ Achievement removed from {target.first_name}!\n\nRemoved: {removed['achievement']}")
+    await update.message.reply_text(
+        f"✅ Achievement removed from {target.first_name}!\n\n"
+        f"Removed: {removed['achievement']}"
+    )
+
 
 # ============ ADD HOF ============
 async def add_hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
