@@ -145,7 +145,7 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     db = await get_db()
     ach = await db.fetch(
-        "SELECT achievement FROM achievements WHERE user_id = $1 ORDER BY rowid DESC",
+        "SELECT achievement FROM achievements WHERE user_id = $1 ORDER BY id DESC",
         user_id
     )
     await db.close()
