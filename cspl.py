@@ -312,8 +312,11 @@ async def hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(msg)
 
 # ============ PROMOTE ADMIN ============
+OWNER_IDS = [7687078555, 6966073511]  # Dono owners
+ADMIN_IDS = [7687078555, 6966073511]  # Dono owners + other admins
+
 async def promoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != OWNER_ID:
+    if update.effective_user.id not in OWNER_IDS:
         await update.message.reply_text("❌ Only bot owner can promote admins!")
         return
     
@@ -335,9 +338,8 @@ async def promoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(f"✅ {target.first_name} is now an admin!")
 
-# ============ DEMOTE ADMIN ============
 async def demoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != OWNER_ID:
+    if update.effective_user.id not in OWNER_IDS:
         await update.message.reply_text("❌ Only bot owner can demote admins!")
         return
     
@@ -347,7 +349,8 @@ async def demoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     target = update.message.reply_to_message.from_user
     
-    if target.id == OWNER_ID:
+    # 🔥 OWNER KO DEMOTE NAHI KAR SAKTE
+    if target.id in OWNER_IDS:
         await update.message.reply_text("❌ Cannot demote the bot owner!")
         return
     
@@ -362,6 +365,7 @@ async def demoteadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f.write(f"{uid}\n")
     
     await update.message.reply_text(f"✅ {target.first_name} is no longer an admin!")
+
 
 # ============ MAIN ============
 async def main():
