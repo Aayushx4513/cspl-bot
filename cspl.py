@@ -139,13 +139,12 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # ============ ACHIEVEMENTS ============
-# ============ ACHIEVEMENTS ============
 async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
     db = await get_db()
     ach = await db.fetch(
-        "SELECT achievement FROM achievements WHERE user_id = $1 ORDER BY id DESC",
+        "SELECT achievement FROM achievements WHERE user_id = $1",
         user_id
     )
     await db.close()
@@ -165,7 +164,6 @@ async def achievements(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(msg)
 
 
-# ============ ADD ACHIEVEMENT ============
 async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         await update.message.reply_text("❌ Admin only command!")
@@ -197,7 +195,6 @@ async def add_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# ============ REMOVE ACHIEVEMENT ============
 async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         await update.message.reply_text("❌ Admin only command!")
@@ -222,7 +219,7 @@ async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     db = await get_db()
     ach = await db.fetch(
-        "SELECT rowid, achievement FROM achievements WHERE user_id = $1 ORDER BY rowid",
+        "SELECT achievement FROM achievements WHERE user_id = $1",
         target.id
     )
     
@@ -232,14 +229,16 @@ async def remove_achievement(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
     
     removed = ach[num-1]
-    await db.execute("DELETE FROM achievements WHERE rowid = $1", removed['rowid'])
+    await db.execute(
+        "DELETE FROM achievements WHERE user_id = $1 AND achievement = $2",
+        target.id, removed['achievement']
+    )
     await db.close()
     
     await update.message.reply_text(
         f"✅ Achievement removed from {target.first_name}!\n\n"
         f"Removed: {removed['achievement']}"
     )
-
 
 # ============ ADD HOF ============
 async def add_hof(update: Update, context: ContextTypes.DEFAULT_TYPE):
